@@ -1,12 +1,15 @@
 // Angular 2
 import {Component, View} from 'angular2/angular2';
 
-const NUM_ANTS = 1000;
-const ANTS_PER_TURN=500;
+const NUM_ANTS = 1;
+const ANTS_PER_TURN = 1;
+
+const NUM_TURNS = 1000;
 
 const MAX_X = 700;
 const MAX_Y = 700;
 const svgns = "http://www.w3.org/2000/svg";
+window.totalFood = 0;
 
 @Component({
   selector: 'ants'
@@ -18,7 +21,7 @@ const svgns = "http://www.w3.org/2000/svg";
 export class Ants {
 
   constructor() {
-
+window.ants= this;
     this.title = 'Ants looking for food';   
     this.centerX = Math.floor(MAX_X / 2)
     this.centerY = Math.floor(MAX_Y / 2)
@@ -42,7 +45,7 @@ export class Ants {
       }
     };
 
-  	for (let i = 0; i < 5; i++) {
+  	for (let i = 0; i < 2; i++) {
 
   		// add random food sources
   		let x = 100 + Math.floor(Math.random() * MAX_X - 100);
@@ -76,17 +79,18 @@ export class Ants {
   	this.currentAnt = 0;
     this.map = document.getElementById('map');
     let turns = 0;      
-    while (turns++ < 2) {
+    while (turns++ < NUM_TURNS) {
 
-      console.log('Drawing map.');
+      // console.log('Drawing map.');
       this.draw();
-      console.log('Map drawn. Let\'s make a turn.');
+      // console.log('Map drawn. Let\'s make a turn.');
       let start = performance.now();
       this.turn();
       let end = performance.now();
 
       console.log(`Turn ${turns} made in`, end - start);
     }
+    console.log('Done. ', this, totalFood, window.totalFood)
   }
 
   // draw a "map";
@@ -102,12 +106,12 @@ export class Ants {
         let colorVal = Math.max(this.grid[x][y].feromone ? this.grid[x][y].feromone : 0, 254);
 
         let fill = this.grid[x][y].type === 'Anthill' ? 'red' : this.grid[x][y].type === 'Breadcrumb' ? 'brown' : 'rgb(${colorVal},${colorVal},${colorVal})';
-        console.log('Elem:', `<rect x="${x}" y="${y}" height="1" width="1" fill="${fill}" stroke="${fill}"/>`);
+        // console.log('Elem:', `<rect x="${x}" y="${y}" height="1" width="1" fill="${fill}" stroke="${fill}"/>`);
         var rect = document.createElementNS(svgns, 'rect');
         rect.setAttributeNS(null, 'x', x)
         rect.setAttributeNS(null, 'x', x);
         rect.setAttributeNS(null, 'y', y);
-        rect.setAttributeNS(null, 'height', this.grid[x][y].type === 'Anthill' ? '6' : '3');
+        rect.setAttributeNS(null, 'height', this.grid[x][y].type === 'Anthill' ? '8' : '5');
         rect.setAttributeNS(null, 'width', this.grid[x][y].type === 'Anthill' ? '6' : '3');
         rect.setAttributeNS(null, 'fill', fill);
         
@@ -115,7 +119,7 @@ export class Ants {
       }.bind(this));
     }.bind(this));
 
-    console.log('Now drawing ants.');
+    console.log('Now drawing ants:', this.ants.length);
     // now draw ants.
     this.ants.forEach(function(ant) {
       
@@ -125,6 +129,7 @@ export class Ants {
       }
       let x = ant.loc[0];
       let y = ant.loc[1];
+      // console.log('Ant X:', x);
       var rect = document.createElementNS(svgns, 'rect');
       rect.setAttributeNS(null, 'x', x)
       rect.setAttributeNS(null, 'x', x);
@@ -160,7 +165,8 @@ export class Ants {
 
       if (!this.grid[ant.loc[0]]) {
 
-        this.grid[ant.loc] = {};
+        this.grid[ant.loc[0]] = {};
+
       }
       if (!this.grid[ant.loc[0]][ant.loc[1]]) {
 
@@ -183,8 +189,8 @@ export class Ants {
         // console.log('Dir: ', dir);
 
         // leave feromone trail
-        console.log('Dir for food source:', dir);
-        ant.loc = [dir];
+        // console.log('Dir for food source:', dir);
+        ant.loc = dir;
         if (this.grid[dir[0]] && this.grid[dir[0]][dir[1]] && this.grid[dir[0]][dir[1]].type === 'Breadcrumb' && 
             this.grid[dir[0]][dir[1]].food > 0) {
 
@@ -204,7 +210,7 @@ export class Ants {
         if (ant.loc[0] === this.centerX && ant.loc[1] === this.centerY) {
 
           ant.food = 0; // head back for more food.
-
+          totalFood++;
         }
       }
    }
